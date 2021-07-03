@@ -1,4 +1,5 @@
-import StackParser
+import compiler
+import vm
 
 
 class Token:
@@ -268,8 +269,13 @@ def getchar():
 # start of program #
 ####################
 if __name__ == '__main__':
+    co_names = []  # symboltable names
+    co_consts = []  # global constant
+    co_values = []  # symboltable values
+
     print('<<Welcome to Hybrid Interpreter>>')
     print('Please type some expressions: ')
+
     while True:
         try:
             text = input('>> ')
@@ -280,9 +286,19 @@ if __name__ == '__main__':
         source = text
         # lexical analyser
         main()
-        # calling the parser
         if len(tokenlist) > 0:
-            parser = StackParser.Parser(tokenlist)
-            parser.program()
-            print(parser.stack.pop())
-
+            comp = compiler.Compiler(tokenlist, co_names, co_consts, False)
+            try:
+                comp.program()
+                if len(co_names) > 0:
+                    if len(co_values) == 0:
+                        co_values = [None] * len(co_names)
+                    else:
+                        dif = len(co_names) - len(co_values)
+                        for i in range(dif):
+                            co_values.append()
+                value = vm.run(comp.co_code, comp.co_consts, comp.co_names, co_values)
+                if value is not None:
+                    print(value)
+            except RuntimeError as emsg:
+                print(emsg)
